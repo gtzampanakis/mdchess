@@ -1,0 +1,10 @@
+[custom.all.mdchess]
+type = "local"
+path = "."
+ipkg = "mdchess.ipkg"
+test = "test/test.ipkg"
+
+[custom.all.mdchess-test]
+type = "local"
+path = "test"
+ipkg = "test.ipkg"
