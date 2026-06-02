@@ -1,7 +1,7 @@
 module Base
 
 import public Data.Fin
-import Data.Vect
+import public Data.Vect
 
 public export
 NFiles : Nat
@@ -45,9 +45,9 @@ record Square where
 
 record Move where
     constructor MkMove
-    squareFrom: Square
-    squareTo: Square
-    promotionTo: Maybe Piece
+    squareFrom : Square
+    squareTo : Square
+    promotionTo : Maybe Piece
 
 public export
 data SquareContent = SquareFilled PieceColored | SquareEmpty
@@ -58,3 +58,16 @@ data RankContents : Type where
 
 public export
 data BoardContents = MkBoardContents (Vect NRanks RankContents)
+
+public export
+data Side = KingSide | QueenSide
+
+public export
+record GameState where
+    constructor MkGameState
+    boardContents : BoardContents
+    activeColor : Color
+    castlingAvailability : List (Pair Color Side)
+    enPassantTargetSquare : Maybe Square
+    halfmoveClock : Nat
+    fullmoveNumber : Nat

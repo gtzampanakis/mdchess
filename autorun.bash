@@ -1,3 +1,3 @@
 #!/bin/bash
 
-find src/ -name '*.idr' | entr pack typecheck
+find src/ -name '*.idr' | entr ./run.bash
