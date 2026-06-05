@@ -5,7 +5,7 @@ import Util
 
 public export
 data NotationDecodeError : Type where
-    MkNotationDecodeError : String -> NotationDecodeError
+    MkNotationDecodeError : List String -> NotationDecodeError
 
 -- Piece
 
@@ -26,7 +26,7 @@ notationAsPiece ls = case ls of
     ['N'] => Right Knight
     ['R'] => Right Rook
     [] => Right Pawn
-    _ => Left (MkNotationDecodeError "Notation Decode Error")
+    _ => Left (MkNotationDecodeError ["Notation Decode Error"])
 
 -- File/Rank
 
@@ -62,7 +62,7 @@ notationAsFile s = case s of
     ['f'] => Right (MkFile 5)
     ['g'] => Right (MkFile 6)
     ['h'] => Right (MkFile 7)
-    _ => Left (MkNotationDecodeError "NotationDecodeError")
+    _ => Left (MkNotationDecodeError ["NotationDecodeError"])
 
 notationAsRank : List Char -> Either NotationDecodeError Rank
 notationAsRank s = case s of
@@ -74,7 +74,7 @@ notationAsRank s = case s of
     ['6'] => Right (MkRank 5)
     ['7'] => Right (MkRank 6)
     ['8'] => Right (MkRank 7)
-    _ => Left (MkNotationDecodeError "NotationDecodeError")
+    _ => Left (MkNotationDecodeError ["NotationDecodeError"])
 
 -- Square
 
@@ -83,10 +83,11 @@ squareAsNotation (MkSquare {file = f, rank = r}) = fileAsNotation f ++ rankAsNot
 
 public export
 notationAsSquare : List Char -> Either NotationDecodeError Square
-notationAsSquare ls = case (notationAsFile filePart, notationAsRank rankPart) of
-    (Left (MkNotationDecodeError str), _) => Left (MkNotationDecodeError str)
-    (_, Left (MkNotationDecodeError str)) => Left (MkNotationDecodeError str)
-    (Right f, Right r) => Right (MkSquare {file = f, rank = r})
+notationAsSquare ls = case notationAsFile filePart of
+    Left (MkNotationDecodeError strings) => Left (MkNotationDecodeError strings)
+    Right file => case notationAsRank rankPart of
+        Left (MkNotationDecodeError strings) => Left (MkNotationDecodeError strings)
+        Right rank => Right (MkSquare {file = file, rank = rank})
     where
         filePart = filter isAlpha ls
         rankPart = filter isDigit ls
