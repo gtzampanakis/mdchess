@@ -65,7 +65,7 @@ data Side = KingSide | QueenSide
 public export
 record GameState where
     constructor MkGameState
-    boardContents : BoardContents
+    piecePlacement : BoardContents
     activeColor : Color
     castlingAvailability : List (Pair Color Side)
     enPassantTargetSquare : Maybe Square

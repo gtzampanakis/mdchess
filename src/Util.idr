@@ -8,9 +8,11 @@ joinBy Nil _ = ""
 joinBy [x] by = x
 joinBy (x::xs) by = x ++ by ++ joinBy xs by
 
+public export
 data NatDecodeError : Type where
     MkNatDecodeError : List String -> NatDecodeError
 
+public export
 charsAsNat : List Char -> Either NatDecodeError Nat
 charsAsNat Nil = Left (MkNatDecodeError ["Empty input"])
 charsAsNat ls = let
@@ -38,3 +40,37 @@ charsAsNat ls = let
         case loop ls of
             Right (acc, mult) => Right acc
             Left str => Left str
+
+public export
+isWhitespace : Char -> Bool
+isWhitespace c = case c of
+    ' ' => True
+    '\t' => True
+    '\n' => True
+    '\r' => True
+    _ => False
+
+public export
+splitStringByWhitespace : String -> List String
+splitStringByWhitespace ls = map pack (splitListCharByWhitespace (unpack ls))
+where
+    splitListCharByWhitespace : List Char -> List (List Char)
+    splitListCharByWhitespace [] = []
+    splitListCharByWhitespace (c0::cs) = case isWhitespace c0 of
+        True => splitListCharByWhitespace cs
+        False => case cs of
+            [] => [c0]::[]
+            (c1::cs) => case isWhitespace c1 of
+                True => [c0]::splitListCharByWhitespace cs
+                False => case splitListCharByWhitespace (c1::cs) of
+                    [] => [] -- absurd
+                    x::xs => (c0::x)::xs
+
+-- public export
+-- firstLeftOrListRights : (a -> Either b c) -> List a -> Either b (List c)
+-- firstLeftOrListRights _ [] = Right []
+-- firstLeftOrListRights fn (x::xs) = case fn x of
+--     Left left => Left left
+--     Right right => case firstLeftOrListRights fn xs of
+--         Left left => Left left
+--         Right rights => Right (right::rights)

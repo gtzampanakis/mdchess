@@ -2,12 +2,13 @@ module Fen
 
 import Base
 import Notation
-
-public export
-decodeFen : String -> GameState
+import Util
 
 data FenDecodeError : Type where
     MkFenDecodeError : List String -> FenDecodeError
+
+decodePiecePlacement : List Char -> Either FenDecodeError BoardContents
+decodePiecePlacement ls = Left (MkFenDecodeError ["Invalid FEN"])
 
 decodePieceColored : List Char -> Either FenDecodeError PieceColored
 decodePieceColored c = case c of
@@ -52,3 +53,29 @@ decodeEnPassantTargetSquare ls = case notationAsSquare ls of
     Left (MkNotationDecodeError strings) => Left (MkFenDecodeError strings)
 
 decodeHalfmoveClock : List Char -> Either FenDecodeError Nat
+decodeHalfmoveClock ls = case charsAsNat ls of
+    Right n => Right n
+    Left (MkNatDecodeError strings) => Left (MkFenDecodeError strings)
+
+decodeFullmoveNumber : List Char -> Either FenDecodeError Nat
+decodeFullmoveNumber ls = case charsAsNat ls of
+    Right n => Right n
+    Left (MkNatDecodeError strings) => Left (MkFenDecodeError strings)
+
+%ambiguity_depth 10
+
+public export
+decodeFen : String -> Either FenDecodeError GameState
+decodeFen s = case map unpack (splitStringByWhitespace s) of
+    [a, b, c, d, e, f] => case (fa a, fb b, fc c, fd d, fe e, ff f) of
+        (Right ra, Right rb, Right rc, Right rd, Right re, Right rf) => Right (MkGameState
+                                                                            ra rb rc rd re rf)
+        _ => Left (MkFenDecodeError ["Invalid FEN"])
+    _ => Left (MkFenDecodeError ["Invalid FEN"])
+where
+    fa = decodePiecePlacement
+    fb = decodeActiveColor
+    fc = decodeCastlingAvailability
+    fd = decodeEnPassantTargetSquare
+    fe = decodeHalfmoveClock
+    ff = decodeFullmoveNumber
