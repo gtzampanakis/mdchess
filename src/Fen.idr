@@ -87,5 +87,3 @@ where
         = Right (MkGameState r1 r2 r3 r4 r5 r6)
     gameStateIfAllRights _ _ _ _ _ _
         = Left (MkFenDecodeError ["Invalid FEN"])
-
-        
