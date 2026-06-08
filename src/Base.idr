@@ -63,11 +63,19 @@ public export
 data Side = KingSide | QueenSide
 
 public export
+data CastlingAvailability : Type where
+    MkCastlingAvailability : List (Pair Color Side) -> CastlingAvailability
+
+public export
+data EnPassantTargetSquare : Type where
+    MkEnPassantTargetSquare : (Maybe Square) -> EnPassantTargetSquare
+
+public export
 record GameState where
     constructor MkGameState
     piecePlacement : BoardContents
     activeColor : Color
-    castlingAvailability : List (Pair Color Side)
-    enPassantTargetSquare : Maybe Square
+    castlingAvailability : CastlingAvailability
+    enPassantTargetSquare : EnPassantTargetSquare
     halfmoveClock : Nat
     fullmoveNumber : Nat

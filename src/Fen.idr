@@ -30,11 +30,11 @@ decodeActiveColor c = case c of
     ['b'] => Right Black
     _ => Left (MkFenDecodeError ["Invalid FEN"])
 
-decodeCastlingAvailability : List Char -> Either FenDecodeError (List (Pair Color Side))
-decodeCastlingAvailability Nil = Right Nil
+decodeCastlingAvailability : List Char -> Either FenDecodeError CastlingAvailability
+decodeCastlingAvailability Nil = Right (MkCastlingAvailability Nil)
 decodeCastlingAvailability (c::cs) = case decodeCastlingAvailabilityChar c of
     Right pair => case decodeCastlingAvailability cs of
-        Right pairs => Right (pair::pairs)
+        Right (MkCastlingAvailability pairs) => Right (MkCastlingAvailability (pair::pairs))
         Left error => Left (MkFenDecodeError ["Invalid FEN"])
     Left error => Left (MkFenDecodeError ["Invalid FEN"])
     where
@@ -46,10 +46,10 @@ decodeCastlingAvailability (c::cs) = case decodeCastlingAvailabilityChar c of
             'q' => Right (Black, QueenSide)
             _ => Left (MkFenDecodeError ["Invalid FEN"])
 
-decodeEnPassantTargetSquare : List Char -> Either FenDecodeError (Maybe Square)
-decodeEnPassantTargetSquare ['-'] = Right Nothing
+decodeEnPassantTargetSquare : List Char -> Either FenDecodeError EnPassantTargetSquare
+decodeEnPassantTargetSquare ['-'] = Right (MkEnPassantTargetSquare Nothing)
 decodeEnPassantTargetSquare ls = case notationAsSquare ls of
-    Right sq => Right (Just sq)
+    Right sq => Right (MkEnPassantTargetSquare (Just sq))
     Left (MkNotationDecodeError strings) => Left (MkFenDecodeError strings)
 
 decodeHalfmoveClock : List Char -> Either FenDecodeError Nat
@@ -62,15 +62,11 @@ decodeFullmoveNumber ls = case charsAsNat ls of
     Right n => Right n
     Left (MkNatDecodeError strings) => Left (MkFenDecodeError strings)
 
-%ambiguity_depth 10
-
 public export
 decodeFen : String -> Either FenDecodeError GameState
 decodeFen s = case map unpack (splitStringByWhitespace s) of
-    [a, b, c, d, e, f] => case (fa a, fb b, fc c, fd d, fe e, ff f) of
-        (Right ra, Right rb, Right rc, Right rd, Right re, Right rf) => Right (MkGameState
-                                                                            ra rb rc rd re rf)
-        _ => Left (MkFenDecodeError ["Invalid FEN"])
+    [a, b, c, d, e, f]
+        => gameStateIfAllRights (fa a) (fb b) (fc c) (fd d) (fe f) (ff f)
     _ => Left (MkFenDecodeError ["Invalid FEN"])
 where
     fa = decodePiecePlacement
@@ -79,3 +75,17 @@ where
     fd = decodeEnPassantTargetSquare
     fe = decodeHalfmoveClock
     ff = decodeFullmoveNumber
+    gameStateIfAllRights :
+                     Either FenDecodeError BoardContents
+                  -> Either FenDecodeError Color
+                  -> Either FenDecodeError CastlingAvailability
+                  -> Either FenDecodeError EnPassantTargetSquare
+                  -> Either FenDecodeError Nat
+                  -> Either FenDecodeError Nat
+                  -> Either FenDecodeError GameState
+    gameStateIfAllRights (Right r1) (Right r2) (Right r3) (Right r4) (Right r5) (Right r6)
+        = Right (MkGameState r1 r2 r3 r4 r5 r6)
+    gameStateIfAllRights _ _ _ _ _ _
+        = Left (MkFenDecodeError ["Invalid FEN"])
+
+        
