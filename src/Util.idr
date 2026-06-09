@@ -51,21 +51,21 @@ isWhitespace c = case c of
     _ => False
 
 public export
-splitString : String -> List Char -> List String
-splitString ls splitChars = map pack (splitListChar (unpack ls))
+splitListChar : List Char -> List Char -> List (List Char)
+splitListChar cs splitChars = loop cs
 where
-    splitListChar : List Char -> List (List Char)
-    splitListChar [] = []
-    splitListChar (c0::cs) = case elem c0 splitChars of
-        True => splitListChar cs
+    loop : List Char -> List (List Char)
+    loop [] = []
+    loop (c0::cs) = case elem c0 splitChars of
+        True => loop cs
         False => case cs of
             [] => [c0]::[]
             (c1::cs) => case elem c1 splitChars of
-                True => [c0]::splitListChar cs
-                False => case splitListChar (c1::cs) of
+                True => [c0]::loop cs
+                False => case loop (c1::cs) of
                     [] => [] -- absurd
                     x::xs => (c0::x)::xs
 
 public export
-splitStringByWhitespace : String -> List String
-splitStringByWhitespace s = splitString s [' ', '\t', '\n', '\r']
+splitListCharByWhitespace : List Char -> List (List Char)
+splitListCharByWhitespace cs = splitListChar cs [' ', '\t', '\n', '\r']

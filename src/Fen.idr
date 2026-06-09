@@ -4,11 +4,15 @@ import Base
 import Notation
 import Util
 
+-- Example position: 1r6/5pp1/R1R4p/1r1pP3/2pkQPP1/7P/1P6/2K5 w - - 0 41
+-- Initial position: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+-- After move 1. e4: rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1
+
 data FenDecodeError : Type where
     MkFenDecodeError : List String -> FenDecodeError
 
 decodePiecePlacement : List Char -> Either FenDecodeError BoardContents
-decodePiecePlacement ls = Left (MkFenDecodeError ["Invalid FEN"])
+decodePiecePlacement cs = Left (MkFenDecodeError ["Invalid FEN"])
 
 decodePieceColored : List Char -> Either FenDecodeError PieceColored
 decodePieceColored c = case c of
@@ -48,23 +52,23 @@ decodeCastlingAvailability (c::cs) = case decodeCastlingAvailabilityChar c of
 
 decodeEnPassantTargetSquare : List Char -> Either FenDecodeError EnPassantTargetSquare
 decodeEnPassantTargetSquare ['-'] = Right (MkEnPassantTargetSquare Nothing)
-decodeEnPassantTargetSquare ls = case notationAsSquare ls of
+decodeEnPassantTargetSquare cs = case notationAsSquare cs of
     Right sq => Right (MkEnPassantTargetSquare (Just sq))
     Left (MkNotationDecodeError strings) => Left (MkFenDecodeError strings)
 
 decodeHalfmoveClock : List Char -> Either FenDecodeError Nat
-decodeHalfmoveClock ls = case charsAsNat ls of
+decodeHalfmoveClock cs = case charsAsNat cs of
     Right n => Right n
     Left (MkNatDecodeError strings) => Left (MkFenDecodeError strings)
 
 decodeFullmoveNumber : List Char -> Either FenDecodeError Nat
-decodeFullmoveNumber ls = case charsAsNat ls of
+decodeFullmoveNumber cs = case charsAsNat cs of
     Right n => Right n
     Left (MkNatDecodeError strings) => Left (MkFenDecodeError strings)
 
 public export
 decodeFen : String -> Either FenDecodeError GameState
-decodeFen s = case map unpack (splitStringByWhitespace s) of
+decodeFen s = case splitListCharByWhitespace $ unpack s of
     [a, b, c, d, e, f]
         => gameStateIfAllRights (fa a) (fb b) (fc c) (fd d) (fe f) (ff f)
     _ => Left (MkFenDecodeError ["Invalid FEN"])
